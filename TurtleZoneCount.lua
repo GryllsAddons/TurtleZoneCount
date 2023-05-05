@@ -133,7 +133,7 @@ end
 
 TZC:position()
 
-local refreshTime = 2
+local refreshTime = GetTime() + 2
 local refreshInterval = 60
 
 local qFaction
