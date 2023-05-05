@@ -1,5 +1,7 @@
 # TurtleZoneCount
 Shows the number of players in your current zone for Turtle WoW.    
+The orange number shows how many players are higher level than you.    
+The yellow number shows how many players are lower level than you.    
 The addon will send a /who for the enemy faction and your faction in succession and analyse the data.    
 Mouseover the icons to see a detailed breakdown.    
 Click the faction to refresh the data and show/hide the the /who panel.    
