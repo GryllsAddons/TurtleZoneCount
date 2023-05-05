@@ -41,6 +41,7 @@ TZC.title:RegisterForDrag("LeftButton")
 TZC.title.text = TZC:CreateFontString("Status", "LOW", "GameFontNormal")
 TZC.title.text:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
 TZC.title.text:SetAllPoints(TZC.title)
+TZC.title.text:SetText("Waiting")
 
 TZC.efaction = CreateFrame("Button", nil, TZC)
 
@@ -133,7 +134,7 @@ end
 
 TZC:position()
 
-local refreshTime = GetTime() + 2
+local refreshTime = GetTime() + 5
 local refreshInterval = 60
 
 local qFaction
