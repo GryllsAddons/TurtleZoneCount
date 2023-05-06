@@ -4,6 +4,7 @@
 The addon displays the number of players in your current zone for Turtle WoW by sending /who commands every minute.  
 The addon only retrieves data about the first 49 players that appear in /who.  
 The addon has a track feature that will look for the top HC player killers in your zone (disabled by default).
+The track feature requires [HCRank](https://github.com/GryllsAddons/HCRank) to be enabled.
 
 ## Features  
 - The orange number shows how many players are higher level than you.    
@@ -11,6 +12,7 @@ The addon has a track feature that will look for the top HC player killers in yo
 - Mouseover the icons to see a detailed breakdown.    
 - Click the faction to refresh the data and toggle the /who panel.    
 - Click the friends icon to refresh the friend data and show the friend panel.    
+- If you have [HCRank](https://github.com/GryllsAddons/HCRank) enabled and are PvP flagged, the track feature will be temporarily enabled.
 - Move the panel by holding shift and ctrl and dragging on the zone name.    
 - Reset the panel by holding shift and ctrl and right clicking on the zone name.    
 
