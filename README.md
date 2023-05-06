@@ -28,5 +28,4 @@ The track feature requires [HCRank](https://github.com/GryllsAddons/HCRank) to b
 
 ![turtlezonecount3](https://user-images.githubusercontent.com/107083057/236590992-92b8c6a1-d053-438b-80e2-55285711a82b.png)
 
-![turtlezonecount4](https://user-images.githubusercontent.com/107083057/236590991-d6daab9d-3001-428b-9bd5-99933199a20f.png)
-
+![turtlezonecount4](https://user-images.githubusercontent.com/107083057/236621978-ea1c5bf1-f7b5-4c81-bbc2-21468a638dfc.png)
