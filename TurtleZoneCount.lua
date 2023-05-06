@@ -186,7 +186,7 @@ function TZC:Tracking()
     else
         TZC.tracking = nil
     end
-    if TZC.tracking and (TurtleZoneCount_Settings.track or (UnitIsPVP("player") and (not IsInInstance()))) then
+    if TZC.tracking and (TurtleZoneCount_Settings.track or UnitIsPVP("player")) then
         if TZC.tracking then
             TZC:SetHeight(107)
             TZC.track:Show()
@@ -304,7 +304,6 @@ function TZC:sendWho(faction, manual)
             SendWho(filter)
         end
     end
-    --  DEFAULT_CHAT_FRAME:AddMessage("DEBUG: queried "..qFaction)
 end
 
 function TZC:openWho(faction)
@@ -586,6 +585,16 @@ function TZC:reset()
     TZC:Tracking()
 end
 
+function TZC:mapUpdate()
+    TZC.zone = GetRealZoneText()
+    if IsInInstance() then
+        TZC:Hide()
+    else            
+        TZC:Show()
+        TZC:update()
+    end
+end
+
 local function TZC_commands(msg, editbox)
     local function message(setting, name)
         local state = "off"
@@ -611,19 +620,18 @@ local function TZC_commands(msg, editbox)
 end
 
 TZC:RegisterEvent("PLAYER_ENTERING_WORLD")
-TZC:RegisterEvent("MINIMAP_ZONE_CHANGED")
+TZC:RegisterEvent("WORLD_MAP_UPDATE")
 TZC:RegisterEvent("WHO_LIST_UPDATE")
 TZC:RegisterEvent("UNIT_FACTION", "player")
 
 TZC:SetScript("OnEvent", function()
     if event == "PLAYER_ENTERING_WORLD" then
-        TZC.zone = GetRealZoneText()      
         if not this.loaded then
             this.loaded = true            
             pFaction = UnitFactionGroup("player")
             TZC:setIcons(pFaction)
             TZC:Tracking()
-            TZC:Show()
+            TZC:mapUpdate()
             SLASH_TZC1 = "/tzc"
             SLASH_TZC2 = "/turtlezonecount"
             SlashCmdList["TZC"] = TZC_commands
@@ -632,12 +640,8 @@ TZC:SetScript("OnEvent", function()
                 DEFAULT_CHAT_FRAME:AddMessage("|cff00ff98Turtle|rZoneCount: Hardcore killer tracking requires the HCRank addon")
             end
         end 
-    elseif event == "MINIMAP_ZONE_CHANGED" then
-        local zone = GetRealZoneText()
-        if zone ~= TZC.zone then
-            TZC.zone = zone
-            TZC:update()
-        end
+    elseif event == "WORLD_MAP_UPDATE" then
+        TZC:mapUpdate()
     elseif event == "WHO_LIST_UPDATE" then
         if queried then
             queried = nil            
