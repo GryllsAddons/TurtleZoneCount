@@ -1,3 +1,7 @@
+TurtleZoneCount_Settings = {
+    track = false
+}
+
 local turtle = (TargetHPText or TargetHPPercText)
 if not turtle then
     DEFAULT_CHAT_FRAME:AddMessage("|cff00ff98Turtle|cffe6b300ZoneCount|r: This addon will only function correctly for Turtle WoW.")
@@ -10,7 +14,6 @@ TZC:Hide()
 TZC:SetFrameLevel(64)
 TZC:SetFrameStrata("MEDIUM")
 TZC:SetWidth(102)
-TZC:SetHeight(86)
 TZC:SetBackdrop({
   bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
   edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -114,6 +117,34 @@ TZC.friend.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
 TZC.friend.text:SetPoint("LEFT", TZC.friend.icon, "RIGHT", 2, 0)
 TZC.friend.text:SetFontObject(GameFontWhite)
 
+TZC.track = CreateFrame("Button", nil, TZC)
+TZC.track:Hide()
+
+TZC.track.button = CreateFrame("Button", nil, TZC.track)
+TZC.track.button:EnableMouse(true) 
+TZC.track.button:SetWidth(TZC:GetWidth())
+TZC.track.button:SetHeight(18)
+TZC.track.button:SetPoint("TOPLEFT", TZC.friend.icon, "BOTTOMLEFT", 0, -2)
+
+TZC.track.icon = TZC:CreateTexture(nil, 'ARTWORK')
+TZC.track.icon:SetWidth(18)
+TZC.track.icon:SetHeight(18)
+TZC.track.icon:SetPoint("LEFT", TZC.track.button, "LEFT", 0, 0)
+TZC.track.icon:SetTexture("Interface\\Icons\\Ability_Hunter_SniperShot")
+TZC.track.icon:SetParent(TZC.track)
+
+TZC.track.border = CreateFrame("Frame", nil, TZC.track)
+TZC.track.border:SetPoint("TOPLEFT", TZC.track.icon, "TOPLEFT", -2, 2)
+TZC.track.border:SetPoint("BOTTOMRIGHT", TZC.track.icon, "BOTTOMRIGHT", 2, -2)
+TZC.track.border:SetBackdrop({edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 12})
+TZC.track.border:SetBackdropBorderColor(1,0.1,0.1)
+
+TZC.track.text = TZC:CreateFontString("Status", "LOW", "GameFontNormal")
+TZC.track.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+TZC.track.text:SetPoint("LEFT", TZC.track.icon, "RIGHT", 2, 0)
+TZC.track.text:SetFontObject(GameFontWhite)
+TZC.track.text:SetParent(TZC.track)
+
 function TZC:setIcons(faction)
     -- Inv_bannerpvp_01 = Horde icon
     -- Inv_bannerpvp_02 = Alliance icon
@@ -129,6 +160,16 @@ function TZC:setIcons(faction)
         TZC.efaction.border:SetBackdropBorderColor(0,0.44,0.87)
         TZC.faction.icon:SetTexture("Interface\\Icons\\Inv_bannerpvp_01")
         TZC.faction.border:SetBackdropBorderColor(1,0.1,0.1)
+    end
+end
+
+function TZC:setHeight()
+    if TurtleZoneCount_Settings.track then
+        TZC:SetHeight(107)
+        TZC.track:Show()
+    else
+        TZC:SetHeight(86)
+        TZC.track:Hide()
     end
 end
 
@@ -169,7 +210,7 @@ end
 function TZC:updateFactionText(faction)
     local color = TZC:color(qFaction)
     if faction.count == 0 then
-        faction.text:SetText(color.."0")
+        faction.text:SetText(color..faction.count)
     else
         faction.text:SetText(color..faction.count.."|r |cffFF7D01"..faction.higher.."|r/|cffFFFC01"..faction.lower)
     end
@@ -177,7 +218,23 @@ end
 
 function TZC:updateFriendsText()
     local friends = TZC.friends or 0
-    TZC.friend.text:SetText(friends)
+    if friends == 0 then
+        TZC.friend.text:SetText(friends)
+    else
+        local llvl, hlvl = TZC:gethighlow(TZC.tfriends)
+        TZC.friend.text:SetText(friends.." |cffFF7D01"..hlvl.."|r/|cffFFFC01"..llvl)
+    end
+    
+end
+
+function TZC:updateTrackedText()
+    local tracked = TZC.tracked or 0    
+    if tracked == 0 then
+        TZC.track.text:SetText("|cffFF2020"..tracked)
+    else
+        local llvl, hlvl = TZC:gethighlow(TZC.ttracked)
+        TZC.track.text:SetText("|cffFF2020"..tracked.."|r |cffFF7D01"..hlvl.."|r/|cffFFFC01"..llvl)
+    end
 end
 
 function TZC:sendWho(faction, manual)
@@ -230,6 +287,11 @@ function TZC:openFriends()
     end
 end
 
+function TZC:resetTracked()
+    TZC.tracked = 0
+    TZC.ttracked = {}
+end
+
 function TZC:refreshTime()
     refreshTime = GetTime() + refreshInterval
 end
@@ -238,6 +300,7 @@ function TZC:whoInfo()
     local faction
     if qFaction == TZC.faction.name then
         faction = TZC.faction
+        TZC:resetTracked()
     else
         faction = TZC.efaction
     end
@@ -245,11 +308,12 @@ function TZC:whoInfo()
     local plvl = UnitLevel("player") 
     local llvl, hlvl = 0, 0
     local levels = { [60] = 0, [50] = 0, [40] = 0, [30] = 0, [20] = 0, [10] = 0, [1] = 0 }
+    
 
     local pcount = GetNumWhoResults()
     if pcount > 0 then
         for i=0, pcount do
-            local _, _, level = GetWhoInfo(i)
+            local name, _, level, _, class = GetWhoInfo(i)
             if level >= 1 then                                
                 if level <= plvl then
                     llvl = llvl + 1
@@ -273,36 +337,59 @@ function TZC:whoInfo()
                     levels[1] = levels[1] + 1
                 end
             end
+
+            local tracked = TZC.tracking[name]
+            if tracked then
+                TZC.tracked = TZC.tracked + 1
+                table.insert(TZC.ttracked, {name = name, level = level, class = class})
+            end
         end
     end    
 
     faction.count = TZC:maxWho(pcount)
     faction.lower = llvl
     faction.higher = hlvl
-    faction.levels = levels   
+    faction.levels = levels
     
     TZC:updateFactionText(faction)
 
     if qFaction == TZC.efaction.name then
         TZC:updateZoneFriends()
         TZC:updateFriendsText()
+        TZC:updateTrackedText()
     end
 end
 
 function TZC:updateZoneFriends()
     local friends = 0
     local tfriends = {}
+    local tfriendslvl = {}
 
 	for i=0, GetNumFriends() do
-		local name, _, _, area = GetFriendInfo(i)
+		local name, level, class, area = GetFriendInfo(i)
 		if (area == TZC.zone) then
 			friends = friends + 1
-            table.insert(tfriends, name)
+            table.insert(tfriends, {name = name, level = level, class = class})
 		end
 	end
 
     TZC.friends = friends
     TZC.tfriends = tfriends
+end
+
+function TZC:gethighlow(table)
+    local llvl, hlvl = 0, 0
+    local plvl = UnitLevel("player") 
+
+    for i, friend in ipairs(table) do
+        if friend.level <= plvl then
+            llvl = llvl + 1
+        else
+            hlvl = hlvl + 1
+        end
+    end 
+
+    return llvl, hlvl
 end
 
 function TZC:update()
@@ -343,8 +430,48 @@ function TZC:friendtooltip()
     end
     GameTooltip:ClearLines()
     GameTooltip:AddDoubleLine("Friends", TZC.friends)
-    for _, friend in pairs(TZC.tfriends) do
-		GameTooltip:AddLine("|cffffffff"..friend)
+    for i, friend in ipairs(TZC.tfriends) do
+        local class = RAID_CLASS_COLORS[strupper(friend.class)] or { r = .5, g = .5, b = .5, a = 1 }
+        GameTooltip:AddLine(friend.name.." ("..friend.level..")", class.r,class.g,class.b)
+	end
+    GameTooltip:Show()
+end
+
+function TZC:rgbToHex(r, g, b)
+    return string.format("%02X%02X%02X", r * 255, g * 255, b * 255)
+end
+
+function TZC:trackedcolor(rank)
+    -- https://colorkit.co/gradient-palette/ff0000-f7ef00/?steps=4
+    local color = "ffffff"
+    if rank >= 75 then
+      color = "f7ef00"
+    elseif rank >= 50 then
+      color = "faa000"    
+    elseif rank >= 25 then
+      color = "fc5100"    
+    elseif rank >= 1 then
+      color = "ff0000"
+    end
+    return color
+  end
+
+function TZC:trackedtooltip()
+    if not TZC.tracked then return end
+    if not GameTooltip:IsShown() then 
+        GameTooltip:SetOwner(this, ANCHOR_BOTTOMLEFT)
+    end
+    GameTooltip:ClearLines()
+    GameTooltip:AddDoubleLine("Tracked", TZC.tracked,1,0.1,0.1,1,0.1,0.1)
+    for i, player in ipairs(TZC.ttracked) do
+        local name = player.name
+        local level = player.level
+        local class = RAID_CLASS_COLORS[strupper(player.class)] or { r = .5, g = .5, b = .5 }
+        local hex = TZC:rgbToHex(class.r, class.g, class.b)
+        local kills = TZC.tracking[name]["Kills"]
+        local rank = TZC.tracking[name]["Rank"]
+        local color = TZC:trackedcolor(rank)
+		GameTooltip:AddDoubleLine("|cff"..color.."#"..rank.." |cff"..hex..name.." ("..level..")", "Players Killed: "..kills)
 	end
     GameTooltip:Show()
 end
@@ -395,6 +522,14 @@ TZC.friend.button:SetScript("OnLeave", function()
     GameTooltip:Hide()
 end)
 
+TZC.track.button:SetScript("OnEnter", function()
+    TZC:trackedtooltip()
+end)
+
+TZC.track.button:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+end)
+
 TZC.title:SetScript("OnDragStart", function()
     if (IsShiftKeyDown() and IsControlKeyDown()) then
         TZC:StartMoving()
@@ -412,12 +547,54 @@ TZC.title:SetScript("OnClick", function()
     end
 end)
 
+function TZC:reset()
+    TurtleZoneCount_Settings.track = false
+    TZC:setHeight()
+end
+
+local function TZC_commands(msg, editbox)
+    local function message(setting, name)
+        local state = "off"
+        if setting then state = "on" end
+        DEFAULT_CHAT_FRAME:AddMessage("TurtleZoneCount: "..name.." is "..state..".", 1, 0.5, 0)
+    end
+    if msg == "track" then
+        if TurtleZoneCount_Settings.track then
+            TurtleZoneCount_Settings.track = false
+        else
+            TurtleZoneCount_Settings.track = true
+        end
+        message(TurtleZoneCount_Settings.track, "Tracking")
+        TZC:setHeight()
+    elseif msg == "reset" then
+        TZC:reset()
+        DEFAULT_CHAT_FRAME:AddMessage("TurtleZoneCount: Settings reset.", 1, 0.5, 0)
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("TurtleZoneCount usage:", 1, 0.5, 0)
+        DEFAULT_CHAT_FRAME:AddMessage("/tzc track - toggle tracking of HC player killers", 1, 0.5, 0)
+        DEFAULT_CHAT_FRAME:AddMessage("/tzc reset - reset settings", 1, 0.5, 0)  
+    end
+end
+
+TZC:RegisterEvent("PLAYER_ENTERING_WORLD")
 TZC:RegisterEvent("MINIMAP_ZONE_CHANGED")
 TZC:RegisterEvent("WHO_LIST_UPDATE")
-TZC:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-TZC:SetScript("OnEvent", function()
-    if event == "MINIMAP_ZONE_CHANGED" then
+TZC:SetScript("OnEvent", function()if event == "PLAYER_ENTERING_WORLD" then
+        TZC.zone = GetRealZoneText()      
+        if not this.loaded then
+            this.loaded = true
+            TZC.tracking = TurtleZoneCount_tracked()
+            TZC.faction.name = UnitFactionGroup("player")
+            TZC:setIcons(TZC.faction.name)
+            TZC:setHeight()
+            TZC:Show()
+            SLASH_TZC1 = "/tzc"
+            SLASH_TZC2 = "/turtlezonecount"
+            SlashCmdList["TZC"] = TZC_commands
+            DEFAULT_CHAT_FRAME:AddMessage("HCWarn Loaded! /hcwarn or /hcw", 1, 0.5, 0)
+        end 
+    elseif event == "MINIMAP_ZONE_CHANGED" then
         local zone = GetRealZoneText()
         if zone ~= TZC.zone then
             TZC.zone = zone
@@ -444,15 +621,7 @@ TZC:SetScript("OnEvent", function()
                     TZC:tooltip(TZC.efaction)
                 end
             end
-        end
-    elseif event == "PLAYER_ENTERING_WORLD" then
-        TZC.zone = GetRealZoneText()      
-        if not this.loaded then
-            this.loaded = true
-            TZC.faction.name = UnitFactionGroup("player")
-            TZC:setIcons(TZC.faction.name)
-            TZC:Show()
-        end        
+        end            
     end
 end)
 

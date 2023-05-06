@@ -2,6 +2,8 @@
 ## Title: |cff00ff98Turtle|rZoneCount
 ## Author: Grylls
 ## Notes: Displays faction counts for players in your zone
-## Version: 1
+## Version: 2
+## SavedVariables: TurtleZoneCount_Settings
 
 TurtleZoneCount.lua
+Tracked.lua
