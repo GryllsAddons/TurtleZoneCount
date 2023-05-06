@@ -167,17 +167,6 @@ local openFriends
 local _PlaySound = PlaySound
 local pass = function() end
 
-function TZC:abbreviate(str)
-    local start, finish = string.find(str, "%S+")
-    local firstWord = string.sub(str, start, finish)
-    if firstWord == "The" then
-        start, finish = string.find(str, "%S+", finish + 1)
-        return string.sub(str, start, finish)
-    else
-        return firstWord
-    end
-end
-
 function TZC:Tracking()
     if IsAddOnLoaded("HCRank") then
         if not TZC.tracking then
@@ -409,8 +398,7 @@ end
 
 function TZC:update()
     qFaction = pFaction
-    local zone = TZC:abbreviate(TZC.zone)
-    TZC.title.text:SetText(zone)
+    TZC.title.text:SetText(TZC.zone)
     TZC:sendWho(qFaction)
     TZC:refreshTime()
 end
@@ -586,12 +574,15 @@ function TZC:reset()
 end
 
 function TZC:mapUpdate()
-    TZC.zone = GetRealZoneText()
-    if IsInInstance() then
-        TZC:Hide()
-    else            
-        TZC:Show()
-        TZC:update()
+    local zone = GetRealZoneText()
+    if TZC.zone ~= zone then
+        TZC.zone = zone
+        if IsInInstance() then
+            TZC:Hide()
+        else            
+            TZC:Show()
+            TZC:update()
+        end
     end
 end
 
@@ -620,7 +611,7 @@ local function TZC_commands(msg, editbox)
 end
 
 TZC:RegisterEvent("PLAYER_ENTERING_WORLD")
-TZC:RegisterEvent("WORLD_MAP_UPDATE")
+TZC:RegisterEvent("MINIMAP_ZONE_CHANGED")
 TZC:RegisterEvent("WHO_LIST_UPDATE")
 TZC:RegisterEvent("UNIT_FACTION", "player")
 
@@ -640,7 +631,7 @@ TZC:SetScript("OnEvent", function()
                 DEFAULT_CHAT_FRAME:AddMessage("|cff00ff98Turtle|rZoneCount: Hardcore killer tracking requires the HCRank addon")
             end
         end 
-    elseif event == "WORLD_MAP_UPDATE" then
+    elseif event == "MINIMAP_ZONE_CHANGED" then
         TZC:mapUpdate()
     elseif event == "WHO_LIST_UPDATE" then
         if queried then
