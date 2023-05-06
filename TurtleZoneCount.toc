@@ -4,6 +4,6 @@
 ## Notes: Displays faction counts for players in your zone
 ## Version: 2
 ## SavedVariables: TurtleZoneCount_Settings
+## OptionalDeps: HCRank
 
 TurtleZoneCount.lua
-Tracked.lua
