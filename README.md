@@ -4,6 +4,7 @@
 The addon displays the number of players in your current zone by sending /who commands every minute.  
 The addon only retrieves data about the first 49 players that appear in /who.  
 The addon has a track feature that will look for the top HC player killers in your zone (disabled by default).    
+You can enable HC killer tracking by typing */tzc track*.    
 The track feature requires [HCRank](https://github.com/GryllsAddons/HCRank) to be enabled.
 
 ## Features  
