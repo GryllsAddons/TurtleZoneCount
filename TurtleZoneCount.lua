@@ -44,7 +44,7 @@ TZC.title:RegisterForDrag("LeftButton")
 TZC.title.text = TZC:CreateFontString("Status", "LOW", "GameFontNormal")
 TZC.title.text:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
 TZC.title.text:SetAllPoints(TZC.title)
-TZC.title.text:SetText("Waiting")
+TZC.title.text:SetText("Wait")
 
 TZC.efaction = CreateFrame("Button", nil, TZC)
 
@@ -147,8 +147,7 @@ TZC.track.text:SetParent(TZC.track)
 
 TZC:position()
 
-local refreshTime = GetTime() + 5
-local refreshInterval = 60
+local refreshTime
 
 TZC.friendlies = {}
 TZC.enemies = {}
@@ -320,7 +319,7 @@ function TZC:openFriends()
 end
 
 function TZC:refreshTime()
-    refreshTime = GetTime() + refreshInterval
+    refreshTime = GetTime() + 60
 end
 
 function TZC:whoInfo()
@@ -397,16 +396,16 @@ function TZC:getDistribution(table, low, high)
 end
 
 function TZC:update()
-    qFaction = pFaction
-    TZC.title.text:SetText(TZC.zone)
-    TZC:sendWho(qFaction)
-    TZC:refreshTime()
+    if (refreshTime) and (GetTime() > refreshTime) then
+        qFaction = pFaction
+        TZC.title.text:SetText(TZC.zone)
+        TZC:sendWho(qFaction)
+        TZC:refreshTime()
+    end
 end
 
 TZC:SetScript("OnUpdate", function()
-    if (refreshTime) and (GetTime() > refreshTime) then
-        TZC:update()
-    end
+    TZC:update()
 end)
 
 function TZC:tooltip(table, faction)
@@ -622,7 +621,8 @@ TZC:SetScript("OnEvent", function()
             pFaction = UnitFactionGroup("player")
             TZC:setIcons(pFaction)
             TZC:Tracking()
-            TZC:mapUpdate()
+            refreshTime = GetTime() + 5        
+            TZC:mapUpdate()            
             SLASH_TZC1 = "/tzc"
             SLASH_TZC2 = "/turtlezonecount"
             SlashCmdList["TZC"] = TZC_commands
