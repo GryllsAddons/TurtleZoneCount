@@ -395,10 +395,26 @@ function TZC:getDistribution(table, low, high)
     return players
 end
 
+function TZC:zonetext(input)
+    local words = {}
+    local start = 1
+    local word_start, word_end = string.find(input, "%S+", start)
+    while word_start do
+        table.insert(words, string.sub(input, word_start, word_end))
+        start = word_end + 1
+        word_start, word_end = string.find(input, "%S+", start)
+    end
+    if words[1] == "The" then
+        table.remove(words, 1)
+    end
+    return words[1]
+end
+
 function TZC:update()
     if (refreshTime) and (GetTime() > refreshTime) then
         qFaction = pFaction
-        TZC.title.text:SetText(TZC.zone)
+        local zone = TZC:zonetext(TZC.zone)
+        TZC.title.text:SetText(zone)
         TZC:sendWho(qFaction)
         TZC:refreshTime()
     end
@@ -621,7 +637,7 @@ TZC:SetScript("OnEvent", function()
             pFaction = UnitFactionGroup("player")
             TZC:setIcons(pFaction)
             TZC:Tracking()
-            refreshTime = GetTime() + 5        
+            refreshTime = GetTime() + 1      
             TZC:mapUpdate()            
             SLASH_TZC1 = "/tzc"
             SLASH_TZC2 = "/turtlezonecount"
