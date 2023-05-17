@@ -269,6 +269,39 @@ function TZC:updateTrackedText()
     end
 end
 
+function TZC:sendWhoConditions()
+    local frames = {
+        AuctionFrame,
+        Bankframe,
+        BattlefieldFrame,
+        CharacterFrame,
+        DressUpFrame,
+        FriendsFrame,
+        GossipFrame,
+        GuildRegistrarFrame,
+        InspectFrame,
+        LootFrame,
+        MailFrame,
+        MacroFrame,
+        MerchantFrame,
+        SpellBookFrame,
+        TabardFrame,
+        TaxiFrame,
+        TradeFrame,
+        QuestFrame,
+        QuestLogFrame,
+    }
+
+    for _, frame in pairs(frames) do
+        if frame:IsVisible() then
+            TZC:refreshTime(5)
+            return false
+        end
+    end
+    TZC:refreshTime()
+    return true
+end
+
 function TZC:sendWho(faction, manual)
     qFaction = faction
     local filter
@@ -280,12 +313,12 @@ function TZC:sendWho(faction, manual)
     end
 
     if not manual then
-        if filter and (not FriendsFrame:IsVisible()) then        
-            PlaySound = pass
-            SendWho(filter)              
-            queried = true           
+        if filter and TZC:sendWhoConditions() then        
+            PlaySound = pass            
+            queried = true
+            SendWho(filter)
         end
-    elseif manual then
+    elseif manual and TZC:sendWhoConditions() then
         if filter then
             queried = true
             queriedMan = true
@@ -318,8 +351,10 @@ function TZC:openFriends()
     end
 end
 
-function TZC:refreshTime()
-    refreshTime = GetTime() + 60
+function TZC:refreshTime(time)
+    local default = 10
+    if time then default = time end
+    refreshTime = GetTime() + default
 end
 
 function TZC:whoInfo()
@@ -415,8 +450,7 @@ function TZC:update()
         qFaction = pFaction
         local zone = TZC:zonetext(TZC.zone)
         TZC.title.text:SetText(zone)
-        TZC:sendWho(qFaction)
-        TZC:refreshTime()
+        TZC:sendWho(qFaction)        
     end
 end
 
