@@ -298,6 +298,8 @@ function TZC:sendWhoConditions()
             return false
         end
     end
+    
+    qFaction = pFaction
     TZC:refreshTime()
     return true
 end
@@ -446,11 +448,10 @@ function TZC:zonetext(input)
 end
 
 function TZC:update()
-    if (refreshTime) and (GetTime() > refreshTime) then
-        qFaction = pFaction
+    if (refreshTime) and (GetTime() > refreshTime) then        
         local zone = TZC:zonetext(TZC.zone)
         TZC.title.text:SetText(zone)
-        TZC:sendWho(qFaction)        
+        TZC:sendWho(qFaction)
     end
 end
 
