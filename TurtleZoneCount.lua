@@ -352,7 +352,7 @@ function TZC:openFriends()
 end
 
 function TZC:refreshTime(time)
-    local default = 10
+    local default = 60
     if time then default = time end
     refreshTime = GetTime() + default
 end
