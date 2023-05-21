@@ -297,6 +297,7 @@ function TZC:sendWhoConditions()
     for _, frame in pairs(frames) do
         if frame:IsVisible() then      
             visible = true
+            break
         end
     end
 
