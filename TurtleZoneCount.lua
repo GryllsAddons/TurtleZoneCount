@@ -292,16 +292,21 @@ function TZC:sendWhoConditions()
         QuestLogFrame,
     }
 
+    local visible
+
     for _, frame in pairs(frames) do
-        if frame:IsVisible() then
-            TZC:refreshTime(5)
-            return false
+        if frame:IsVisible() then      
+            visible = true
         end
     end
-    
-    qFaction = pFaction
-    TZC:refreshTime()
-    return true
+
+    if visible then
+        TZC:refreshTime(2)
+        return false
+    else
+        TZC:refreshTime()
+        return true
+    end
 end
 
 function TZC:sendWho(faction, manual)
@@ -354,9 +359,11 @@ function TZC:openFriends()
 end
 
 function TZC:refreshTime(time)
-    local default = 60
-    if time then default = time end
-    refreshTime = GetTime() + default
+    if time then
+        refreshTime = GetTime() + time
+    else
+        refreshTime = GetTime() + 60
+    end
 end
 
 function TZC:whoInfo()
@@ -448,7 +455,9 @@ function TZC:zonetext(input)
 end
 
 function TZC:update()
-    if (refreshTime) and (GetTime() > refreshTime) then        
+    if (refreshTime) and (GetTime() > refreshTime) then
+        refreshTime = nil
+        qFaction = pFaction
         local zone = TZC:zonetext(TZC.zone)
         TZC.title.text:SetText(zone)
         TZC:sendWho(qFaction)
