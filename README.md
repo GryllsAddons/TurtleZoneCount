@@ -1,5 +1,7 @@
 # TurtleZoneCount
 
+## Please note that recently TWoW has implemented a severe limit on how you can use the /who command which impacts this addon.
+
 ## Description
 The addon displays the number of players in your current zone by sending /who commands every minute.  
 The addon only retrieves data about the first 49 players that appear in /who.  
