@@ -11,7 +11,6 @@ The track feature requires [HCRank](https://github.com/GryllsAddons/HCRank) to b
 - The orange number shows how many players are higher level than you.    
 - The yellow number shows how many players are lower level than you.    
 - Mouseover the icons to see a detailed breakdown.    
-- Click the faction to refresh the data and toggle the /who panel.    
 - Click the friends icon to refresh the friend data and show the friend panel.    
 - If you have [HCRank](https://github.com/GryllsAddons/HCRank) enabled and are PvP flagged, the track feature will be temporarily enabled.
 - Move the panel by holding shift and ctrl and dragging on the zone name.    
