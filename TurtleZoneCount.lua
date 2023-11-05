@@ -159,6 +159,8 @@ local eFaction
 
 local queried
 local queriedMan
+local queriedTime = GetTime()
+local queriedTimeout = 1
 
 local openFaction
 local openFriends
@@ -302,13 +304,31 @@ function TZC:sendWhoConditions()
     end
 
     if visible then
-        TZC:refreshTime(2)
+        TZC:refreshTime()
         return false
     else
         TZC:refreshTime()
         return true
     end
 end
+
+local timer = CreateFrame("Frame")
+timer:Hide()
+timer:SetScript("OnUpdate", function()
+    local elapsed = GetTime() - queriedTime
+    elapsed = (floor(elapsed))
+    elapsed = 30-elapsed
+    TZC.title.text:SetText(elapsed)
+
+    if (elapsed <= 0) then
+        if not qFaction then qFaction = pFaction end
+        if qFaction == pFaction then
+            TZC:sendWho(pFaction)    
+        else
+            TZC:sendWho(eFaction)
+        end
+    end    
+end)
 
 function TZC:sendWho(faction, manual)
     qFaction = faction
@@ -318,20 +338,14 @@ function TZC:sendWho(faction, manual)
         filter = "z-"..TZC.zone.." r-Human r-Dwarf r-Gnome r-Elf"
     elseif faction == "Horde" then
         filter = "z-"..TZC.zone.." r-Orc r-Troll r-Goblin r-Tauren r-Undead"        
-    end
-
-    if not manual then
-        if filter and TZC:sendWhoConditions() then        
-            PlaySound = pass            
-            queried = true
-            SendWho(filter)
-        end
-    elseif manual and TZC:sendWhoConditions() then
-        if filter then
-            queried = true
-            queriedMan = true
-            SendWho(filter)
-        end
+    end               
+        
+    if filter and TZC:sendWhoConditions() then        
+        PlaySound = pass            
+        queried = true
+        queriedTime = GetTime()            
+        SendWho(filter)
+        -- DEFAULT_CHAT_FRAME:AddMessage("sendwho faction "..qFaction)
     end
 end
 
@@ -340,7 +354,7 @@ function TZC:openWho(faction)
         openFaction = faction
         openFriends = nil
         ShowWhoPanel()
-    elseif not openFriends then    
+    elseif not openFriends then
         HideUIPanel(FriendsFrame)
         openFaction = nil
     end    
@@ -359,12 +373,8 @@ function TZC:openFriends()
     end
 end
 
-function TZC:refreshTime(time)
-    if time then
-        refreshTime = GetTime() + time
-    else
-        refreshTime = GetTime() + 60
-    end
+function TZC:refreshTime()
+    refreshTime = GetTime() + 31
 end
 
 function TZC:whoInfo()
@@ -389,12 +399,15 @@ function TZC:whoInfo()
 
     if qFaction == pFaction then
         TZC:updateFriendlyText()
+        qFaction = eFaction
     else
         TZC:updateEnemyText()
-        TZC:updateFriends()
-        TZC:updateFriendsText()
-        TZC:updateTrackedText()
+        qFaction = pFaction
     end
+
+    TZC:updateFriends()
+    TZC:updateFriendsText()
+    TZC:updateTrackedText()
 end
 
 function TZC:updateFriends()
@@ -456,18 +469,19 @@ function TZC:zonetext(input)
 end
 
 function TZC:update()
-    if (refreshTime) and (GetTime() > refreshTime) then
-        refreshTime = nil
+    -- if (refreshTime) and (GetTime() > refreshTime) then
+    --     refreshTime = nil
         qFaction = pFaction
         local zone = TZC:zonetext(TZC.zone)
         TZC.title.text:SetText(zone)
-        TZC:sendWho(qFaction)
-    end
+        -- TZC:sendWho(qFaction)
+        timer:Show()
+    -- end
 end
 
-TZC:SetScript("OnUpdate", function()
-    TZC:update()
-end)
+-- TZC:SetScript("OnUpdate", function()
+--     TZC:update()
+-- end)
 
 function TZC:tooltip(table, faction)
     if not table then return end
@@ -546,7 +560,7 @@ end
 
 TZC.efaction.button:SetScript("OnClick", function()
     TZC.emouse = true    
-    TZC:sendWho(eFaction, true)
+    -- TZC:sendWho(eFaction, true)
 end)
 
 TZC.efaction.button:SetScript("OnEnter", function()
@@ -561,7 +575,7 @@ end)
 
 TZC.faction.button:SetScript("OnClick", function()
     TZC.fmouse = true
-    TZC:sendWho(pFaction, true)
+    -- TZC:sendWho(pFaction, true)
 end)
 
 TZC.faction.button:SetScript("OnEnter", function()
@@ -700,10 +714,7 @@ TZC:SetScript("OnEvent", function()
             TZC:whoInfo()
             if not queriedMan then
                 HideUIPanel(FriendsFrame)
-                PlaySound = _PlaySound
-                if qFaction == pFaction then
-                    TZC:sendWho(eFaction)
-                end
+                PlaySound = _PlaySound                
             elseif queriedMan then
                 queriedMan = nil
                 TZC:openWho(qFaction)
@@ -724,41 +735,27 @@ end)
 local HookChatFrame_OnEvent = ChatFrame_OnEvent
 function ChatFrame_OnEvent(event)    
 	if (event == "CHAT_MSG_SYSTEM") then
-        if queried then            
+        local result
+        local elapsed = GetTime() - queriedTime
+        if queried then
             -- Example of /who result messages:
             -- 1 player total
-            -- 3 players total
-            
-            local _, _, result = string.find(arg1,"(%d+) player.- total")
+            -- 3 players total            
+            _, _, result = string.find(arg1,"(%d+) player.- total")
+        end
 
+        if (elapsed < queriedTimeout) then
             if result then                
                 TZC:whoInfo()
-                if not queriedMan then
-                    PlaySound = _PlaySound
-                    if qFaction == pFaction then
-                        TZC:sendWho(eFaction)
-                        return
-                    end
-                elseif queriedMan then
-                    queriedMan = nil
-                    TZC:openWho(qFaction)
-                    if TZC.fmouse then
-                        TZC.fmouse = nil
-                        TZC:tooltip(TZC.friendlies, pFaction)
-                    elseif TZC.emouse then
-                        TZC.emouse = nil
-                        TZC:tooltip(TZC.enemies, eFaction)
-                    end
-                end
-            end           
-           
-            if not result then 
+                PlaySound = _PlaySound
                 return
-            else
-                queried = nil
-                return
-            end 
-        end
+            end
+        else
+            -- DEFAULT_CHAT_FRAME:AddMessage("timedout")
+            queried = nil
+            -- local info = ChatTypeInfo["SYSTEM"]
+            -- DEFAULT_CHAT_FRAME:AddMessage(arg1, info.r, info.g, info.b, info.id)
+        end        
     end
     HookChatFrame_OnEvent(event)
 end
