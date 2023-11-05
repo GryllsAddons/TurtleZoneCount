@@ -1,9 +1,7 @@
 # TurtleZoneCount
 
-## Please note that recently TWoW has implemented a severe limit on how you can use the /who command which impacts this addon.
-
 ## Description
-The addon displays the number of players in your current zone by sending /who commands every minute.  
+The addon displays the number of players in your current zone by sending /who commands every 30 seconds, alternating between factions.  
 The addon only retrieves data about the first 49 players that appear in /who.  
 The addon has a track feature that will look for the top HC player killers in your zone (disabled by default).    
 You can enable HC killer tracking by typing */tzc track*.    
