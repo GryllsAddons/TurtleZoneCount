@@ -318,7 +318,8 @@ timer:SetScript("OnUpdate", function()
     local elapsed = GetTime() - queriedTime
     elapsed = (floor(elapsed))
     elapsed = 30-elapsed
-    TZC.title.text:SetText(elapsed)
+    local text = TZC:zonetext(TZC.zone).." - "..elapsed..""
+    TZC.title.text:SetText(text)
 
     if (elapsed <= 0) then
         if not qFaction then qFaction = pFaction end
@@ -472,8 +473,8 @@ function TZC:update()
     -- if (refreshTime) and (GetTime() > refreshTime) then
     --     refreshTime = nil
         qFaction = pFaction
-        local zone = TZC:zonetext(TZC.zone)
-        TZC.title.text:SetText(zone)
+        -- local zone = TZC:zonetext(TZC.zone)
+        -- TZC.title.text:SetText(zone)
         -- TZC:sendWho(qFaction)
         timer:Show()
     -- end
