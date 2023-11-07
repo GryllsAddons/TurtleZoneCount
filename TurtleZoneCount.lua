@@ -41,6 +41,12 @@ TZC.title:EnableMouse(true)
 TZC.title:RegisterForClicks("RightButtonDown")
 TZC.title:RegisterForDrag("LeftButton")
 
+TZC.title.refresh = TZC:CreateFontString("Status", "LOW", "GameFontNormal")
+TZC.title.refresh:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
+TZC.title.refresh:SetPoint("BOTTOM", TZC.title, "TOP", 0, 5)
+TZC.title.refresh:SetText("Wait")
+TZC.title.refresh:Hide()
+
 TZC.title.text = TZC:CreateFontString("Status", "LOW", "GameFontNormal")
 TZC.title.text:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
 TZC.title.text:SetAllPoints(TZC.title)
@@ -158,7 +164,6 @@ local pFaction
 local eFaction
 
 local queried
-local queriedMan
 local queriedTime = GetTime()
 local queriedTimeout = 1
 
@@ -318,8 +323,7 @@ timer:SetScript("OnUpdate", function()
     local elapsed = GetTime() - queriedTime
     elapsed = (floor(elapsed))
     elapsed = 30-elapsed
-    local text = TZC:zonetext(TZC.zone).." - "..elapsed..""
-    TZC.title.text:SetText(text)
+    -- TZC.title.refresh:SetText(elapsed)
 
     if (elapsed <= 0) then
         if not qFaction then qFaction = pFaction end
@@ -331,7 +335,7 @@ timer:SetScript("OnUpdate", function()
     end    
 end)
 
-function TZC:sendWho(faction, manual)
+function TZC:sendWho(faction)
     qFaction = faction
     local filter
     
@@ -466,23 +470,22 @@ function TZC:zonetext(input)
     if words[1] == "The" then
         table.remove(words, 1)
     end
-    return words[1]
+    local output = words[1]
+    -- local length = 4
+    -- if string.len(output) > length then
+    --     output = string.sub(output, 1, length)
+    -- end
+    return output
 end
 
 function TZC:update()
-    -- if (refreshTime) and (GetTime() > refreshTime) then
-    --     refreshTime = nil
-        qFaction = pFaction
-        -- local zone = TZC:zonetext(TZC.zone)
-        -- TZC.title.text:SetText(zone)
-        -- TZC:sendWho(qFaction)
-        timer:Show()
-    -- end
+    qFaction = pFaction
+    local zone = TZC:zonetext(TZC.zone)
+    if zone then
+        TZC.title.text:SetText(zone)
+    end
+    timer:Show()
 end
-
--- TZC:SetScript("OnUpdate", function()
---     TZC:update()
--- end)
 
 function TZC:tooltip(table, faction)
     if not table then return end
@@ -560,8 +563,7 @@ function TZC:trackedtooltip()
 end
 
 TZC.efaction.button:SetScript("OnClick", function()
-    TZC.emouse = true    
-    -- TZC:sendWho(eFaction, true)
+    TZC.emouse = true
 end)
 
 TZC.efaction.button:SetScript("OnEnter", function()
@@ -576,7 +578,6 @@ end)
 
 TZC.faction.button:SetScript("OnClick", function()
     TZC.fmouse = true
-    -- TZC:sendWho(pFaction, true)
 end)
 
 TZC.faction.button:SetScript("OnEnter", function()
@@ -713,20 +714,8 @@ TZC:SetScript("OnEvent", function()
         if queried then
             queried = nil            
             TZC:whoInfo()
-            if not queriedMan then
-                HideUIPanel(FriendsFrame)
-                PlaySound = _PlaySound                
-            elseif queriedMan then
-                queriedMan = nil
-                TZC:openWho(qFaction)
-                if TZC.fmouse then
-                    TZC.fmouse = nil
-                    TZC:tooltip(TZC.friendlies, pFaction)
-                elseif TZC.emouse then
-                    TZC.emouse = nil
-                    TZC:tooltip(TZC.enemies, eFaction)
-                end
-            end
+            HideUIPanel(FriendsFrame)
+            PlaySound = _PlaySound
         end
     elseif event == "UNIT_FACTION" then
         TZC:Tracking()
@@ -736,27 +725,23 @@ end)
 local HookChatFrame_OnEvent = ChatFrame_OnEvent
 function ChatFrame_OnEvent(event)    
 	if (event == "CHAT_MSG_SYSTEM") then
-        local result
-        local elapsed = GetTime() - queriedTime
         if queried then
             -- Example of /who result messages:
             -- 1 player total
             -- 3 players total            
-            _, _, result = string.find(arg1,"(%d+) player.- total")
-        end
+            local _, _, result = string.find(arg1,"(%d+) player.- total")
 
-        if (elapsed < queriedTimeout) then
-            if result then                
-                TZC:whoInfo()
-                PlaySound = _PlaySound
+            local elapsed = GetTime() - queriedTime
+            if (elapsed < queriedTimeout) then
+                if result then                
+                    TZC:whoInfo()
+                    PlaySound = _PlaySound                    
+                end
                 return
+            else
+                queried = nil
             end
-        else
-            -- DEFAULT_CHAT_FRAME:AddMessage("timedout")
-            queried = nil
-            -- local info = ChatTypeInfo["SYSTEM"]
-            -- DEFAULT_CHAT_FRAME:AddMessage(arg1, info.r, info.g, info.b, info.id)
-        end        
+        end     
     end
     HookChatFrame_OnEvent(event)
 end
