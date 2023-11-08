@@ -735,6 +735,7 @@ function ChatFrame_OnEvent(event)
             if (elapsed < queriedTimeout) then
                 if result then                
                     TZC:whoInfo()
+                    queried = nil
                     PlaySound = _PlaySound                    
                 end
                 return
